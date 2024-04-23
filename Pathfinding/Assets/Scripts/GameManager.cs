@@ -8,6 +8,8 @@ public class GameManager : MonoBehaviour
     private int[,] GameMatrix; //0 not chosen, 1 player, 2 enemy
     private int[] startPos = new int[2];
     private int[] objectivePos = new int[2];
+    private List<Node> nodes = new List<Node>();
+
     private void Awake()
     {
         GameMatrix = new int[Calculator.length, Calculator.length];
@@ -29,6 +31,8 @@ public class GameManager : MonoBehaviour
         InstantiateToken(token1, startPos);
         InstantiateToken(token2, objectivePos);
         ShowMatrix();
+        //Seteamos el primer nodo al inicial.
+        nodes.Add(new Node(Calculator.CheckDistanceToObj(startPos, objectivePos), new Vector2(startPos[0], startPos[1]), null));
     }
     private void InstantiateToken(GameObject token, int[] position)
     {
