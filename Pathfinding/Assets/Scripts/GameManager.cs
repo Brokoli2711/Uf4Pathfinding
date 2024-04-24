@@ -1,14 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class GameManager : MonoBehaviour
 {
+    bool si = false;
     public GameObject token1, token2, token3;
     private int[,] GameMatrix; //0 not chosen, 1 player, 2 enemy
     private int[] startPos = new int[2];
     private int[] objectivePos = new int[2];
-    private List<Node> nodes = new List<Node>();
+    private List<Node> openList = new List<Node>();
+    private List<Node> closeList = new List<Node>();    
 
     private void Awake()
     {
@@ -32,7 +35,8 @@ public class GameManager : MonoBehaviour
         InstantiateToken(token2, objectivePos);
         ShowMatrix();
         //Seteamos el primer nodo al inicial.
-        nodes.Add(new Node(Calculator.CheckDistanceToObj(startPos, objectivePos), new Vector2(startPos[0], startPos[1]), null));
+        openList.Add(new Node(Calculator.CheckDistanceToObj(startPos, objectivePos), new Vector2(startPos[0], startPos[1]), null));
+        closeList.Add(new Node(Calculator.CheckDistanceToObj(startPos, objectivePos), new Vector2(startPos[0], startPos[1]), null));
     }
     private void InstantiateToken(GameObject token, int[] position)
     {
@@ -68,11 +72,50 @@ public class GameManager : MonoBehaviour
     {
         if(!EvaluateWin())
         {
-
+            openList.Sort();
+            openList.AddRange(CreateWASDNodes(openList[0]));
         }
     }
     private bool EvaluateWin()
     {
+        if (closeList[closeList.Count].position == new Vector2(objectivePos[0], objectivePos[1])) return true;
         return false;
     }
+
+    private List<Node> CreateWASDNodes(Node actualNode)
+    {
+        List<Node> nodes = new List<Node>();
+        for(int i = 0; i < 4; i++)
+        {
+            nodes.Add(CreateNewNode(actualNode, i));
+        }
+        return nodes;
+    }
+
+    private Node CreateNewNode(Node actualNode, int actualDirection)
+    {
+        int[] nodePosition = { 0, 0 };
+        Vector2 position = new Vector2();
+        switch (actualDirection)
+        {
+            case 0:
+                position = new Vector2(actualNode.position.x + 1, actualNode.position.y);
+                break;
+            case 1: 
+                position = new Vector2(actualNode.position.x, actualNode.position.y - 1);
+                break;
+            case 2:
+                position = new Vector2(actualNode.position.x - 1, actualNode.position.y);
+                break;
+            case 3:
+                position = new Vector2(actualNode.position.x, actualNode.position.y + 1);
+                break;
+        }
+        
+        nodePosition[0] = System.Convert.ToInt32(position[0]);
+        nodePosition[1] = System.Convert.ToInt32(position[1]);
+
+        return new Node(Calculator.CheckDistanceToObj(nodePosition, objectivePos), position, actualNode);
+    }
+
 }
