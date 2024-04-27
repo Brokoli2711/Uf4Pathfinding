@@ -11,7 +11,11 @@ public class GameManager : MonoBehaviour
     private int[] startPos = new int[2];
     private int[] objectivePos = new int[2];
     private List<Node> openList = new List<Node>();
-    private List<Node> closeList = new List<Node>();    
+    private List<Node> closeList = new List<Node>();
+
+    System.Comparison<Node> nodeComparer;
+
+
 
     private void Awake()
     {
@@ -34,9 +38,11 @@ public class GameManager : MonoBehaviour
         InstantiateToken(token1, startPos);
         InstantiateToken(token2, objectivePos);
         ShowMatrix();
-        //Seteamos el primer nodo al inicial.
+        //Seteamos el primer nodo al inicial en la lista abierta y cerrada
         openList.Add(new Node(Calculator.CheckDistanceToObj(startPos, objectivePos), new Vector2(startPos[0], startPos[1]), null));
         closeList.Add(new Node(Calculator.CheckDistanceToObj(startPos, objectivePos), new Vector2(startPos[0], startPos[1]), null));
+
+        nodeComparer = new System.Comparison<Node>(CompareNodeTotalCost);
     }
     private void InstantiateToken(GameObject token, int[] position)
     {
@@ -72,14 +78,28 @@ public class GameManager : MonoBehaviour
     {
         if(!EvaluateWin())
         {
-            openList.Sort();
+            //Ordenamos la lista abierta y luego añadimos el primer valor a la lista cerrada. Luego eliminamos el valor en la lista abierta
+            openList.Sort(nodeComparer);
             openList.AddRange(CreateWASDNodes(openList[0]));
+            closeList.Add(openList[0]);
+            openList.Remove(openList[0]);
+
+            Debug.Log("OpenList");
+            foreach (var node in openList)
+            {
+                Debug.Log(node.position);
+            }
         }
     }
     private bool EvaluateWin()
     {
-        if (closeList[closeList.Count].position == new Vector2(objectivePos[0], objectivePos[1])) return true;
+        if (closeList[closeList.Count - 1].position == new Vector2(objectivePos[0], objectivePos[1])) return true;
         return false;
+    }
+
+    private static int CompareNodeTotalCost(Node node1, Node node2)
+    {
+        return node1.totalCost.CompareTo(node2.totalCost);
     }
 
     private List<Node> CreateWASDNodes(Node actualNode)
