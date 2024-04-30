@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 
 public class GameManager : MonoBehaviour
 {
-    bool si = false;
     public GameObject token1, token2, token3;
+    public GameObject pathingImage;
     private int[,] GameMatrix; //0 not chosen, 1 player, 2 enemy
     private int[] startPos = new int[2];
     private int[] objectivePos = new int[2];
@@ -40,7 +40,6 @@ public class GameManager : MonoBehaviour
         ShowMatrix();
         //Seteamos el primer nodo al inicial en la lista abierta y cerrada
         openList.Add(new Node(Calculator.CheckDistanceToObj(startPos, objectivePos), new Vector2(startPos[0], startPos[1]), null));
-        closeList.Add(new Node(Calculator.CheckDistanceToObj(startPos, objectivePos), new Vector2(startPos[0], startPos[1]), null));
 
         nodeComparer = new System.Comparison<Node>(CompareNodeTotalCost);
     }
@@ -84,22 +83,29 @@ public class GameManager : MonoBehaviour
             closeList.Add(openList[0]);
             openList.Remove(openList[0]);
 
-            Debug.Log("OpenList");
-            foreach (var node in openList)
+        }
+        else
+        {
+           if(Input.GetKeyDown(KeyCode.Space))
             {
-                Debug.Log(node.position);
+                DoPathing(closeList[closeList.Count - 1]);
             }
+
         }
     }
     private bool EvaluateWin()
     {
-        if (closeList[closeList.Count - 1].position == new Vector2(objectivePos[0], objectivePos[1])) return true;
+        if(closeList.Count == 0)
+        {
+            return false;
+        }
+        if (closeList[closeList.Count - 1].position == new Vector3(objectivePos[0], objectivePos[1])) return true;
         return false;
     }
 
     private static int CompareNodeTotalCost(Node node1, Node node2)
     {
-        return node1.totalCost.CompareTo(node2.totalCost);
+        return node1.heuristic.CompareTo(node2.heuristic);
     }
 
     private List<Node> CreateWASDNodes(Node actualNode)
@@ -138,4 +144,13 @@ public class GameManager : MonoBehaviour
         return new Node(Calculator.CheckDistanceToObj(nodePosition, objectivePos), position, actualNode);
     }
 
+    private void DoPathing(Node nextNode)
+    {
+        if (nextNode.previousNode != null)
+        {
+            int[] position = { (int)nextNode.position.x, (int)nextNode.position.y };
+            InstantiateToken(pathingImage, position);
+            DoPathing(nextNode.previousNode);
+        }
+    }
 }

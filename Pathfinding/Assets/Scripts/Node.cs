@@ -6,10 +6,10 @@ public class Node
 {
     public float heuristic;
     public float totalCost;
-    public Vector2 position;
+    public Vector3 position;
     public Node previousNode;
 
-    public Node(float heuristic, Vector2 position, Node previousNode)
+    public Node(float heuristic, Vector3 position, Node previousNode)
     {
         this.heuristic = heuristic;
         this.position = position;
